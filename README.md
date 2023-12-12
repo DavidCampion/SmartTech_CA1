@@ -1,2 +1,2 @@
 # SmartTech_CA1
-SmartTech CA1 by Double Ds
+SmartTech CA1 by Double Ds (David Campion & David McCabe)
