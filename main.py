@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+import random
 from keras.datasets import cifar10, cifar100
 
 def load_data():
@@ -35,6 +38,60 @@ def load_data():
     print("Combined training data shape:", X_train_combined.shape)
     print("Combined testing data shape:", X_test_combined.shape)
 
-    return (X_train_combined, y_train_combined, X_test_combined, y_test_combined)
+    return X_train_combined, y_train_combined, X_test_combined, y_test_combined
 
-combined_data = load_data()
+def pre_processing(combinedlist):
+
+    X_train_combined = combinedlist[0]
+    y_train_combined = combinedlist[1]
+    X_test_combined = combinedlist[2]
+    y_test_combined = combinedlist[3]
+
+    # Reshape the data
+    X_train, X_test = reshape_data(X_train_combined, X_test_combined)
+
+    # Original
+    plt.imshow(X_train[1000])
+    plt.axis("off")
+    plt.title("Original Image")
+    plt.show()
+
+    # Grayscale
+    img = grayscale(X_train[1000])
+    plt.imshow(img, cmap='gray')
+    plt.axis("off")
+    plt.title("Grayscale Image")
+    plt.show()
+
+    # Equalize
+    img = equalize(img)
+    plt.imshow(img)
+    plt.show()
+
+    # Normalize
+    img = img / 255
+
+    # Gaussian Blur
+    img = cv2.GaussianBlur(img, (3, 3), 0)
+
+    return img
+
+def grayscale(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return img
+
+def equalize(img):
+  img = cv2.equalizeHist(img)
+  return img
+
+def reshape_data(X_train_combined, X_test_combined):
+    X_train = X_train_combined.reshape(X_train_combined.shape[0], 32, 32, 3)
+    X_test = X_test_combined.reshape(X_test_combined.shape[0], 32, 32, 3)
+    return X_train, X_test
+
+def main():
+    combinedlist = load_data()
+
+    img = pre_processing(combinedlist)
+
+main()
