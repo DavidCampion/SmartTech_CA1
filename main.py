@@ -12,7 +12,7 @@ def load_data():
     # CIFAR-10 classes
     cifar10_classes = [1, 2, 3, 4, 5, 7, 9]
     # CIFAR-100 classes
-    cifar100_classes = [2, 8, 11, 13, 19, 34, 35, 41, 46, 48, 58, 65, 80, 89, 90, 98]
+    cifar100_classes = [2, 8, 11, 13, 17, 19, 34, 35, 41, 46, 48, 58, 65, 80, 89, 90, 98]
 
     # Filter CIFAR-10 data
     X_train_10, y_train_10 = X_train_10[np.isin(y_train_10.flatten(), cifar10_classes)], y_train_10[np.isin(y_train_10.flatten(), cifar10_classes)]
