@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import tensorflow as tf
+from keras.utils import to_categorical
 import random
 from keras.datasets import cifar10, cifar100
 
@@ -14,10 +15,10 @@ def unpickle(file):
     return dict
 
 def load_data():
-    file_10 = 'C:\\SmartTech_CA1_2\\data\\cifar-10-batches-py\\data_batch_1'
-    file_10_test = 'C:\\SmartTech_CA1_2\\data\\cifar-10-batches-py\\test_batch'
-    file_100 = 'C:\\SmartTech_CA1_2\\data\\cifar-100-python\\train'
-    file_100_test = 'C:\\SmartTech_CA1_2\\data\\cifar-100-python\\test'
+    file_10 = '\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-10-batches-py\\data_batch_1'
+    file_10_test = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-10-batches-py\\test_batch'
+    file_100 = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-100-python\\train'
+    file_100_test = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-100-python\\test'
 
     data_batch_10 = unpickle(file_10)
     data_batch_100 = unpickle(file_100)
@@ -67,26 +68,35 @@ def load_data():
 
     plt.imshow(image)
     plt.title(f"Label: {label}")
+
     plt.show()
     return X_train_combined,y_train_combined
+
+def grayscale(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return img
+
+def equalize(img):
+  img = cv2.equalizeHist(img)
+  return img
+
+def reshape_data(X_train_combined, X_test_combined):
+    X_train = X_train_combined.reshape(X_train_combined.shape[0], 32, 32, 3)
+    X_test = X_test_combined.reshape(X_test_combined.shape[0], 32, 32, 3)
+    return X_train, X_test
+
 def pre_processing(combinedlist):
 
     X_train_combined = combinedlist[0]
-    y_train_combined = combinedlist[1]
-    X_test_combined = combinedlist[2]
-    y_test_combined = combinedlist[3]
-
-    # Reshape the data
-    X_train, X_test = reshape_data(X_train_combined, X_test_combined)
 
     # Original
-    plt.imshow(X_train[1000])
+    plt.imshow(X_train_combined[1000])
     plt.axis("off")
     plt.title("Original Image")
     plt.show()
 
     # Grayscale
-    img = grayscale(X_train[1000])
+    img = grayscale(X_train_combined[1000])
     plt.imshow(img, cmap='gray')
     plt.axis("off")
     plt.title("Grayscale Image")
@@ -105,23 +115,57 @@ def pre_processing(combinedlist):
 
     return img
 
-def grayscale(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def preprocess(img):
+    img = grayscale(img)
+    img = equalize(img)
+    img = img / 255
+    img = cv2.GaussianBlur(img, (3, 3), 0)
     return img
 
-def equalize(img):
-  img = cv2.equalizeHist(img)
-  return img
+def data_exploration(combinedlist):
+    X_train_combined = combinedlist[0]
+    y_train_combined = combinedlist[1]
 
-def reshape_data(X_train_combined, X_test_combined):
-    X_train = X_train_combined.reshape(X_train_combined.shape[0], 32, 32, 3)
-    X_test = X_test_combined.reshape(X_test_combined.shape[0], 32, 32, 3)
-    return X_train, X_test
+    classes = [1, 2, 3, 4, 5, 7, 9, 8, 11, 13, 17, 19, 34, 35, 41, 46, 48, 58, 65, 80, 89, 90, 98]
+
+    filtered_classes = np.intersect1d(classes, np.unique(y_train_combined))
+
+    num_classes = len(filtered_classes)
+    cols = 5
+    fig, axs = plt.subplots(nrows=num_classes, ncols=cols, figsize=(5, 50))
+    fig.tight_layout()
+
+    num_of_samples = []
+
+    for i in range(cols):
+        for idx, j in enumerate(filtered_classes):
+            x_selected = X_train_combined[y_train_combined == j]
+            if len(x_selected) > 0:
+                axs[idx][i].imshow(x_selected[random.randint(0, len(x_selected) - 1), :, :], cmap=plt.get_cmap('gray'))
+            axs[idx][i].axis("off")
+            if i == 2:
+                num_of_samples.append(len(x_selected))
+                axs[idx][i].set_title(str(j))
+
+    plt.show()
+
+    plt.figure(figsize=(12, 4))
+    plt.bar(range(0, num_classes), num_of_samples)
+    plt.title("Distribution of the training set")
+    plt.xlabel("Class number")
+    plt.ylabel("Number of images")
+    plt.show()
+
+    # Printing num_of_samples
+    print(num_of_samples)
 
 def main():
     load_data()
-    # combinedlist = load_data()
 
-#   img = pre_processing(combinedlist)
+    combinedlist = load_data()
+
+    data_exploration(combinedlist)
+
+    img = pre_processing(combinedlist)
 
 main()
