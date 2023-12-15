@@ -1,45 +1,74 @@
+import pickle
+
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import tensorflow as tf
 import random
 from keras.datasets import cifar10, cifar100
 
+
+def unpickle(file):
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='latin1')
+    return dict
+
 def load_data():
-    # Load CIFAR-10 and CIFAR-100
-    (X_train_10, y_train_10), (X_test_10, y_test_10) = cifar10.load_data()
-    (X_train_100, y_train_100), (X_test_100, y_test_100) = cifar100.load_data(label_mode='fine')
+    file_10 = 'C:\\SmartTech_CA1_2\\data\\cifar-10-batches-py\\data_batch_1'
+    file_10_test = 'C:\\SmartTech_CA1_2\\data\\cifar-10-batches-py\\test_batch'
+    file_100 = 'C:\\SmartTech_CA1_2\\data\\cifar-100-python\\train'
+    file_100_test = 'C:\\SmartTech_CA1_2\\data\\cifar-100-python\\test'
 
-    print("Original CIFAR-10 training data shape:", X_train_10.shape)
-    print("Original CIFAR-100 training data shape:", X_train_100.shape)
+    data_batch_10 = unpickle(file_10)
+    data_batch_100 = unpickle(file_100)
+    data_batch_10_test = unpickle(file_10_test)
+    data_batch_100_test = unpickle(file_100_test)
+    print(data_batch_10.keys())
+    print(data_batch_100.keys())
 
-    # CIFAR-10 classes
+
     cifar10_classes = [1, 2, 3, 4, 5, 7, 9]
-    # CIFAR-100 classes
     cifar100_classes = [2, 8, 11, 13, 17, 19, 34, 35, 41, 46, 48, 58, 65, 80, 89, 90, 98]
 
-    # Filter CIFAR-10 data
-    X_train_10, y_train_10 = X_train_10[np.isin(y_train_10.flatten(), cifar10_classes)], y_train_10[np.isin(y_train_10.flatten(), cifar10_classes)]
-    X_test_10, y_test_10 = X_test_10[np.isin(y_test_10.flatten(), cifar10_classes)], y_test_10[np.isin(y_test_10.flatten(), cifar10_classes)]
+    # ref: https://www.binarystudy.com/2021/09/how-to-load-preprocess-visualize-CIFAR-10-and-CIFAR-100.html#cifar10-load
+    mask_10 = np.isin(data_batch_10['labels'], cifar10_classes)
+    X_train_10 = data_batch_10['data'][mask_10].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+    y_train_10 = np.array(data_batch_10['labels'])[mask_10]
 
-    print("CIFAR-10 training data shape:", X_train_10.shape)
+    mask_10_test = np.isin(data_batch_10_test['labels'], cifar10_classes)
+    X_test_10 = data_batch_10_test['data'][mask_10_test].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+    y_test_10 = np.array(data_batch_10_test['labels'])[mask_10_test]
 
-    # Filter CIFAR-100 data
-    X_train_100, y_train_100 = X_train_100[np.isin(y_train_100.flatten(), cifar100_classes)], y_train_100[np.isin(y_train_100.flatten(), cifar100_classes)]
-    X_test_100, y_test_100 = X_test_100[np.isin(y_test_100.flatten(), cifar100_classes)], y_test_100[np.isin(y_test_100.flatten(), cifar100_classes)]
+    mask_100 = np.isin(data_batch_100['fine_labels'], cifar100_classes)
+    X_train_100 = data_batch_100['data'][mask_100].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+    y_train_100 = np.array(data_batch_100['fine_labels'])[mask_100]
 
-    print("CIFAR-100 training data shape:", X_train_100.shape)
+    mask_100_test = np.isin(data_batch_100_test['fine_labels'], cifar100_classes)
+    X_test_100 = data_batch_100_test['data'][mask_100_test].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+    y_test_100 = np.array(data_batch_100_test['fine_labels'])[mask_100_test]
 
-    # Combine the datasets
     X_train_combined = np.concatenate((X_train_10, X_train_100), axis=0)
     y_train_combined = np.concatenate((y_train_10, y_train_100), axis=0)
     X_test_combined = np.concatenate((X_test_10, X_test_100), axis=0)
     y_test_combined = np.concatenate((y_test_10, y_test_100), axis=0)
 
-    print("Combined training data shape:", X_train_combined.shape)
-    print("Combined testing data shape:", X_test_combined.shape)
+    print("Filtered CIFAR-10 Data Shape(x):", X_train_10.shape)
+    print("Filtered CIFAR-100 Data Shape(x):", X_train_100.shape)
+    print("Filtered CIFAR-10 Labels Shape(y):", y_train_10.shape)
+    print("Filtered CIFAR-100 Labels Shape(y):", y_train_100.shape)
+    print("Combined Training Data Shape(x):", X_train_combined.shape)
+    print("Combined Training Labels Shape(y):", y_train_combined.shape)
+    print("Combined Testing Data Shape(x):", X_test_combined.shape)
+    print("Combined Testing Labels Shape(y):", y_test_combined.shape)
 
-    return X_train_combined, y_train_combined, X_test_combined, y_test_combined
+    random_index = random.randint(0, len(X_train_100) - 1)
+    image = X_train_100[random_index]
+    label = y_train_100[random_index]
 
+    plt.imshow(image)
+    plt.title(f"Label: {label}")
+    plt.show()
+    return X_train_combined,y_train_combined
 def pre_processing(combinedlist):
 
     X_train_combined = combinedlist[0]
@@ -90,8 +119,9 @@ def reshape_data(X_train_combined, X_test_combined):
     return X_train, X_test
 
 def main():
-    combinedlist = load_data()
+    load_data()
+    # combinedlist = load_data()
 
-    img = pre_processing(combinedlist)
+#   img = pre_processing(combinedlist)
 
 main()
