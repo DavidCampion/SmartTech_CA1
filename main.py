@@ -52,14 +52,6 @@ def grayscale(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img
 
-def preprocess(img):
-    img = grayscale(img)
-    img = equalize(img)
-    img = img / 255
-    img = cv2.GaussianBlur(img, (3, 3), 0)
-    return img.reshape(32, 32, 1)  # Reshape for single channel
-
-
 def equalize(img):
   img = cv2.equalizeHist(img)
   return img
@@ -69,8 +61,14 @@ def reshape_data(X_train_combined, X_test_combined):
     X_test = X_test_combined.reshape(X_test_combined.shape[0], 32, 32, 3)
     return X_train, X_test
 
-def pre_processing(combinedlist):
+def preprocess(img):
+    img = grayscale(img)
+    img = equalize(img)
+    img = img / 255
+    img = cv2.GaussianBlur(img, (3, 3), 0)
+    return img.reshape(32, 32, 1)  # Reshape for single channel
 
+def pre_processing(combinedlist):
     X_train_combined = combinedlist[0]
 
     # Original
@@ -98,7 +96,6 @@ def pre_processing(combinedlist):
     img = cv2.GaussianBlur(img, (3, 3), 0)
 
     return img
-
 
 def data_exploration(combinedlist):
     X_train_combined = combinedlist[0]
@@ -140,12 +137,12 @@ def data_exploration(combinedlist):
 # https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
 def leNet_model(num_classes):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+    model.add(Conv2D(60, (3, 3), activation='relu', input_shape=(32, 32, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(Conv2D(30, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
-    model.add(Dense(124, activation='relu'))
+    model.add(Dense(500, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(num_classes, activation='softmax'))
 
@@ -160,6 +157,9 @@ def main():
     # Apply preprocessing
     X_train_preprocessed = np.array([preprocess(img) for img in X_train_combined])
     X_test_preprocessed = np.array([preprocess(img) for img in X_test_combined])
+
+    # Demo Of PreProcessing
+    pre_processing([X_train_combined, y_train_combined])
 
     # Define the model
     num_classes = np.max(y_train_combined) + 1
