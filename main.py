@@ -1,80 +1,64 @@
-import pickle
-
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-import tensorflow as tf
 from keras.utils import to_categorical
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+
 import random
-from keras.datasets import cifar10, cifar100
-
-
-def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='latin1')
-    return dict
 
 def load_data():
-    file_10 = '\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-10-batches-py\\data_batch_1'
-    file_10_test = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-10-batches-py\\test_batch'
-    file_100 = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-100-python\\train'
-    file_100_test = 'C:\\Users\\David\\Documents\\DKIT\\Y4\\SmartTech\\SmartTech_CA1\\cifar-100-python\\test'
+    # Load CIFAR-10 data
+    (X_train_10, y_train_10), (X_test_10, y_test_10) = tf.keras.datasets.cifar10.load_data()
+    y_train_10 = y_train_10.flatten()
+    y_test_10 = y_test_10.flatten()
 
-    data_batch_10 = unpickle(file_10)
-    data_batch_100 = unpickle(file_100)
-    data_batch_10_test = unpickle(file_10_test)
-    data_batch_100_test = unpickle(file_100_test)
-    print(data_batch_10.keys())
-    print(data_batch_100.keys())
+    # Load CIFAR-100 data
+    (X_train_100, y_train_100), (X_test_100, y_test_100) = tf.keras.datasets.cifar100.load_data(label_mode='fine')
+    y_train_100 = y_train_100.flatten()
+    y_test_100 = y_test_100.flatten()
 
-
+    # Filter classes
     cifar10_classes = [1, 2, 3, 4, 5, 7, 9]
     cifar100_classes = [2, 8, 11, 13, 17, 19, 34, 35, 41, 46, 48, 58, 65, 80, 89, 90, 98]
 
     # ref: https://www.binarystudy.com/2021/09/how-to-load-preprocess-visualize-CIFAR-10-and-CIFAR-100.html#cifar10-load
-    mask_10 = np.isin(data_batch_10['labels'], cifar10_classes)
-    X_train_10 = data_batch_10['data'][mask_10].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
-    y_train_10 = np.array(data_batch_10['labels'])[mask_10]
+    mask_10 = np.isin(y_train_10, cifar10_classes)
+    X_train_10 = X_train_10[mask_10]
+    y_train_10 = y_train_10[mask_10]
 
-    mask_10_test = np.isin(data_batch_10_test['labels'], cifar10_classes)
-    X_test_10 = data_batch_10_test['data'][mask_10_test].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
-    y_test_10 = np.array(data_batch_10_test['labels'])[mask_10_test]
+    mask_10_test = np.isin(y_test_10, cifar10_classes)
+    X_test_10 = X_test_10[mask_10_test]
+    y_test_10 = y_test_10[mask_10_test]
 
-    mask_100 = np.isin(data_batch_100['fine_labels'], cifar100_classes)
-    X_train_100 = data_batch_100['data'][mask_100].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
-    y_train_100 = np.array(data_batch_100['fine_labels'])[mask_100]
+    mask_100 = np.isin(y_train_100, cifar100_classes)
+    X_train_100 = X_train_100[mask_100]
+    y_train_100 = y_train_100[mask_100]
 
-    mask_100_test = np.isin(data_batch_100_test['fine_labels'], cifar100_classes)
-    X_test_100 = data_batch_100_test['data'][mask_100_test].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
-    y_test_100 = np.array(data_batch_100_test['fine_labels'])[mask_100_test]
+    mask_100_test = np.isin(y_test_100, cifar100_classes)
+    X_test_100 = X_test_100[mask_100_test]
+    y_test_100 = y_test_100[mask_100_test]
 
+    # Combine and return the datasets
     X_train_combined = np.concatenate((X_train_10, X_train_100), axis=0)
     y_train_combined = np.concatenate((y_train_10, y_train_100), axis=0)
     X_test_combined = np.concatenate((X_test_10, X_test_100), axis=0)
     y_test_combined = np.concatenate((y_test_10, y_test_100), axis=0)
 
-    print("Filtered CIFAR-10 Data Shape(x):", X_train_10.shape)
-    print("Filtered CIFAR-100 Data Shape(x):", X_train_100.shape)
-    print("Filtered CIFAR-10 Labels Shape(y):", y_train_10.shape)
-    print("Filtered CIFAR-100 Labels Shape(y):", y_train_100.shape)
-    print("Combined Training Data Shape(x):", X_train_combined.shape)
-    print("Combined Training Labels Shape(y):", y_train_combined.shape)
-    print("Combined Testing Data Shape(x):", X_test_combined.shape)
-    print("Combined Testing Labels Shape(y):", y_test_combined.shape)
-
-    random_index = random.randint(0, len(X_train_100) - 1)
-    image = X_train_100[random_index]
-    label = y_train_100[random_index]
-
-    plt.imshow(image)
-    plt.title(f"Label: {label}")
-
-    plt.show()
-    return X_train_combined,y_train_combined
+    return X_train_combined, y_train_combined, X_test_combined, y_test_combined
 
 def grayscale(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img
+
+def preprocess(img):
+    img = grayscale(img)
+    img = equalize(img)
+    img = img / 255
+    img = cv2.GaussianBlur(img, (3, 3), 0)
+    return img.reshape(32, 32, 1)  # Reshape for single channel
+
 
 def equalize(img):
   img = cv2.equalizeHist(img)
@@ -115,12 +99,6 @@ def pre_processing(combinedlist):
 
     return img
 
-def preprocess(img):
-    img = grayscale(img)
-    img = equalize(img)
-    img = img / 255
-    img = cv2.GaussianBlur(img, (3, 3), 0)
-    return img
 
 def data_exploration(combinedlist):
     X_train_combined = combinedlist[0]
@@ -159,13 +137,41 @@ def data_exploration(combinedlist):
     # Printing num_of_samples
     print(num_of_samples)
 
+# https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
+def leNet_model(num_classes):
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(124, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(num_classes, activation='softmax'))
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
 def main():
-    load_data()
+    X_train_combined, y_train_combined, X_test_combined, Y_test_combined = load_data()
+    data_exploration([X_train_combined, y_train_combined])
 
-    combinedlist = load_data()
+    # Apply preprocessing
+    X_train_preprocessed = np.array([preprocess(img) for img in X_train_combined])
+    X_test_preprocessed = np.array([preprocess(img) for img in X_test_combined])
 
-    data_exploration(combinedlist)
+    # Define the model
+    num_classes = np.max(y_train_combined) + 1
+    model = leNet_model(num_classes)
 
-    img = pre_processing(combinedlist)
+    # Train the model
+    history = model.fit(X_train_preprocessed, y_train_combined, epochs=15, validation_data=(X_test_preprocessed, Y_test_combined), batch_size=400, verbose=1, shuffle=1)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.legend(["Training", "Validation"])
+    plt.title("Loss")
+    plt.xlabel("Epoch")
+    plt.show()
 
 main()

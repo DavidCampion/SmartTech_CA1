@@ -12,3 +12,6 @@ https://www.binarystudy.com/2021/09/how-to-load-preprocess-visualize-CIFAR-10-an
 https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
 # This helped us understand how to use the CIFAR-100 dataset in tensorflow
 https://www.geeksforgeeks.org/python-pandas-dataframe-isin/
+
+# helped with model 
+https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
