@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import cv2
 import random
 from keras.src.layers import BatchNormalization
+from keras.src.legacy.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -45,6 +46,9 @@ def load_data():
     y_train_combined = np.concatenate((y_train_10, y_train_100), axis=0)
     X_test_combined = np.concatenate((X_test_10, X_test_100), axis=0)
     y_test_combined = np.concatenate((y_test_10, y_test_100), axis=0)
+
+    print("Total number of training images:", X_train_combined.shape[0])
+    print("Total number of testing images:", X_test_combined.shape[0])
 
     return X_train_combined, y_train_combined, X_test_combined, y_test_combined
 
@@ -122,6 +126,8 @@ def data_exploration(combinedlist):
                 num_of_samples.append(len(x_selected))
                 axs[idx][i].set_title(str(j))
 
+    print("Number of images per class:", num_of_samples)
+
     plt.show()
 
     plt.figure(figsize=(12, 4))
@@ -186,6 +192,15 @@ def main():
     # Print the model summary
     print(model.summary())
 
+    # image data augmentation
+    datagen = ImageDataGenerator(
+        rotation_range=10,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        horizontal_flip=True,
+        zoom_range=0.1
+    )
+    datagen.fit(X_train_preprocessed)
     # Train the model
     train_model(model, X_train_preprocessed, y_train_combined, X_test_preprocessed, Y_test_combined)
 

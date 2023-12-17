@@ -15,3 +15,6 @@ https://www.geeksforgeeks.org/python-pandas-dataframe-isin/
 
 # helped with model 
 https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
+
+# Data Augmentation 
+https://stackoverflow.com/questions/70080062/how-to-correctly-use-imagedatagenerator-in-keras
