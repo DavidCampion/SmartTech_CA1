@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import cv2
 import random
 from keras.src.layers import BatchNormalization
-from keras.src.legacy.preprocessing.image import ImageDataGenerator
+from keras.src.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
 def load_data():
     # Load CIFAR-10 data
@@ -149,11 +149,13 @@ def leNet_model(num_classes):
     model.add(Conv2D(125, (3, 3), activation='relu', input_shape=(32, 32, 1)))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.3))
 
     # Second Convolutional Block
     model.add(Conv2D(250, (3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.3))
 
     # Flattening and Fully Connected Layers
     model.add(Flatten())
@@ -166,7 +168,9 @@ def leNet_model(num_classes):
     return model
 
 def train_model(model, X_train_preprocessed, y_train_combined, X_test_preprocessed, Y_test_combined):
-    history = model.fit(X_train_preprocessed, y_train_combined, epochs=15, validation_data=(X_test_preprocessed, Y_test_combined), batch_size=400, verbose=1, shuffle=1)
+    # history = model.fit(X_train_preprocessed, y_train_combined, epochs=15, validation_data=(X_test_preprocessed, Y_test_combined), batch_size=400, verbose=1, shuffle=1)
+    datagen = ImageDataGenerator()
+    history = model.fit(datagen.flow(X_train_preprocessed, y_train_combined, batch_size=100), epochs=20, steps_per_epoch=X_train_preprocessed.shape[0] / 250, validation_data=(X_test_preprocessed, Y_test_combined), verbose=1, shuffle=1)
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.legend(["Training", "Validation"])
