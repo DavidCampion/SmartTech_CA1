@@ -144,24 +144,23 @@ def data_exploration(combinedlist):
 # https://keras.io/api/layers/normalization_layers/batch_normalization/
 def leNet_model(num_classes):
     model = Sequential()
-
-    # First Convolutional Block
-    model.add(Conv2D(125, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+    # First Convolutional Block with increased filters
+    model.add(Conv2D(128, (3, 3), activation='relu', input_shape=(32, 32, 1)))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.3))
 
     # Second Convolutional Block
-    model.add(Conv2D(250, (3, 3), activation='relu'))
+    model.add(Conv2D(256, (3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.4))
 
     # Flattening and Fully Connected Layers
     model.add(Flatten())
-    model.add(Dense(500, activation='relu'))
+    model.add(Dense(512, activation='relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.5))  # Increased Dropout rate
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
