@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from keras.src.layers import BatchNormalization
 from keras.utils import to_categorical
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -135,20 +136,29 @@ def data_exploration(combinedlist):
     print(num_of_samples)
 
 # https://www.geeksforgeeks.org/image-classification-using-cifar-10-and-cifar-100-dataset-in-tensorflow/
+# https://keras.io/api/layers/normalization_layers/batch_normalization/
 def leNet_model(num_classes):
     model = Sequential()
-    model.add(Conv2D(60, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+
+    # First Convolutional Block
+    model.add(Conv2D(30, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(30, (3, 3), activation='relu'))
+
+    # Second Convolutional Block
+    model.add(Conv2D(60, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    # Flattening and Fully Connected Layers
     model.add(Flatten())
     model.add(Dense(500, activation='relu'))
+    model.add(BatchNormalization())
     model.add(Dropout(0.5))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return model
-
 
 def main():
     X_train_combined, y_train_combined, X_test_combined, Y_test_combined = load_data()
