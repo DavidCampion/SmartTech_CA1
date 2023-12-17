@@ -141,12 +141,12 @@ def leNet_model(num_classes):
     model = Sequential()
 
     # First Convolutional Block
-    model.add(Conv2D(30, (3, 3), activation='relu', input_shape=(32, 32, 1)))
+    model.add(Conv2D(125, (3, 3), activation='relu', input_shape=(32, 32, 1)))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # Second Convolutional Block
-    model.add(Conv2D(60, (3, 3), activation='relu'))
+    model.add(Conv2D(250, (3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
