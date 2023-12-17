@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import random
 from keras.src.layers import BatchNormalization
 from keras.utils import to_categorical
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-
-import random
 
 def load_data():
     # Load CIFAR-10 data
@@ -160,6 +159,15 @@ def leNet_model(num_classes):
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return model
 
+def train_model(model, X_train_preprocessed, y_train_combined, X_test_preprocessed, Y_test_combined):
+    history = model.fit(X_train_preprocessed, y_train_combined, epochs=15, validation_data=(X_test_preprocessed, Y_test_combined), batch_size=400, verbose=1, shuffle=1)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.legend(["Training", "Validation"])
+    plt.title("Loss")
+    plt.xlabel("Epoch")
+    plt.show()
+
 def main():
     X_train_combined, y_train_combined, X_test_combined, Y_test_combined = load_data()
     data_exploration([X_train_combined, y_train_combined])
@@ -175,13 +183,10 @@ def main():
     num_classes = np.max(y_train_combined) + 1
     model = leNet_model(num_classes)
 
+    # Print the model summary
+    print(model.summary())
+
     # Train the model
-    history = model.fit(X_train_preprocessed, y_train_combined, epochs=15, validation_data=(X_test_preprocessed, Y_test_combined), batch_size=400, verbose=1, shuffle=1)
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.legend(["Training", "Validation"])
-    plt.title("Loss")
-    plt.xlabel("Epoch")
-    plt.show()
+    train_model(model, X_train_preprocessed, y_train_combined, X_test_preprocessed, Y_test_combined)
 
 main()
